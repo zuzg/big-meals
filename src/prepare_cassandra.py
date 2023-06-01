@@ -19,6 +19,7 @@ def create_keyspace(session: Session) -> None:
         + f"'{REPLICATION_FACTOR}'" + "}"
     )
     session.execute(statement)
+    session.set_keyspace(KEYSPACE)
 
 
 def create_tables(session: Session) -> None:

@@ -1,6 +1,6 @@
 class Tables:
     sample = """
-    CREATE TABLE IF NOT EXISTS store.shopping_cart (
+    CREATE TABLE IF NOT EXISTS shopping_cart (
     userid text PRIMARY KEY,
     item_count int,
     last_update_timestamp timestamp
