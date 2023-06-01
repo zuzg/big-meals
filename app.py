@@ -1,23 +1,10 @@
 import pandas as pd
 import streamlit as st
-from cassandra.cluster import Cluster
+
+from src.prepare_cassandra import prepare_cassandra
 
 
-def set_up_cluster():
-    cluster = Cluster(["127.0.0.1"], port=9042)
-    session = cluster.connect()
-    session.execute(
-        """CREATE KEYSPACE IF NOT EXISTS store WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : '1' };"""
-    )
-    session.execute(
-        """
-    CREATE TABLE IF NOT EXISTS store.shopping_cart (
-    userid text PRIMARY KEY,
-    item_count int,
-    last_update_timestamp timestamp
-    );
-    """
-    )
+def add_rows(session):
     session.execute(
         """
     INSERT INTO store.shopping_cart
@@ -33,12 +20,12 @@ def set_up_cluster():
     """
     )
 
-    return session
-
 
 st.title("Big data project")
 st.subheader("Shopping cart")
-session = set_up_cluster()
+session = prepare_cassandra()
+add_rows(session)
+
 users = session.execute(
     """
     SELECT * FROM store.shopping_cart;
