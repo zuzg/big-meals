@@ -1,0 +1,9 @@
+name: big-data
+channels:
+  - conda-forge
+  - defaults
+  - anaconda
+dependencies:
+  - python=3.10
+  - cassandra-driver
+  - streamlit
