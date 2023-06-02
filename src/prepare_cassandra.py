@@ -3,6 +3,8 @@ from cassandra.policies import RoundRobinPolicy
 from cassandra import ConsistencyLevel
 
 from .Tables import Tables
+from .query import QueryMeal
+from .MockData import MockData
 
 
 IP_ADDRESS = "127.0.0.1"
@@ -27,6 +29,12 @@ def create_tables(session: Session) -> None:
         session.execute(table)
 
 
+def fill_meals(query: QueryMeal, n: int = 5) -> None:
+    for _ in range(n):
+        mock = MockData()
+        query.insert(mock.food_type, mock.provider, mock.pickup_time)
+
+
 def prepare_cassandra() -> Session:
     cluster = Cluster(
         [IP_ADDRESS],
@@ -37,4 +45,6 @@ def prepare_cassandra() -> Session:
     session = cluster.connect()
     create_keyspace(session)
     create_tables(session)
+    query = QueryMeal(session)
+    fill_meals(query)
     return session

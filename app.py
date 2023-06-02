@@ -3,34 +3,10 @@ import streamlit as st
 
 from src.prepare_cassandra import prepare_cassandra
 
-
-def add_rows(session):
-    session.execute(
-        """
-    INSERT INTO shopping_cart
-    (userid, item_count, last_update_timestamp)
-    VALUES ('9876', 2, toTimeStamp(now()));
-    """
-    )
-    session.execute(
-        """
-    INSERT INTO shopping_cart
-    (userid, item_count, last_update_timestamp)
-    VALUES ('1234', 5, toTimeStamp(now()));
-    """
-    )
-
-
-st.title("Big data project")
-st.subheader("Shopping cart")
+st.title("Foodssy")
+st.subheader("Available meals")
 session = prepare_cassandra()
-add_rows(session)
 
-users = session.execute(
-    """
-    SELECT * FROM shopping_cart;
-    """
-)
-
-user_df = pd.DataFrame(users, columns=["user_id", "item_count", "timestamp"])
-st.table(user_df)
+meals = session.execute("SELECT * FROM meal_by_id;")
+meals_df = pd.DataFrame(meals, columns=["meal_id", "meal_type", "provider", "pickup_time"])
+st.table(meals_df)
