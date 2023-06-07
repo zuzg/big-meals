@@ -1,4 +1,4 @@
-from cassandra.cluster import Session, ResultSet
+from cassandra.cluster import Session
 import uuid
 import datetime
 
@@ -25,7 +25,7 @@ class QueryReservation:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.prepared_insert = session.prepare(
-            "INSERT INTO reservation_by_meal (meal_id, client_name, reservation_timestamp) "
+            "INSERT INTO reservations (meal_id, client_name, reservation_timestamp) "
             "VALUES (?, ?, ?) IF NOT EXISTS"
         )
         self.meal_update = self.session.prepare(
@@ -39,15 +39,15 @@ class QueryReservation:
     ) -> None:
         bound = self.prepared_insert.bind((meal_id, client_name, datetime.datetime.now()))
         self.session.execute(bound)
-        query = self.meal_update.bind((meal_id))
+        query = self.meal_update.bind((meal_id,))
         self.session.execute(query)
 
     def drop(self) -> None:
-        query = f"DROP TABLE reservation_by_meal"
+        query = f"DROP TABLE reservations"
         self.session.execute(query)
 
 
 def truncate_all(session: Session) -> None:
-    tables = ["meal_by_id", "reservation_by_meal"]
+    tables = ["meal_by_id", "reservations"]
     for table in tables:
         session.execute(f"TRUNCATE {table}")

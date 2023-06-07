@@ -1,7 +1,7 @@
 import streamlit as st
 
 from src.prepare_cassandra import prepare_cassandra
-from src.app_pages import global_page, user_page
+from src.app_pages import global_page, user_page, stress_page
 
 
 def main() -> None:
@@ -23,6 +23,7 @@ def main() -> None:
         pages = {
             "Global": global_page,
             "User": user_page,
+            "Stress tests": stress_page,
         }
         name = st.sidebar.radio('Choose a page', pages.keys(), index=0)
         pages[name]()

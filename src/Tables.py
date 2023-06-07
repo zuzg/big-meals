@@ -8,12 +8,14 @@ class Tables:
         is_available boolean,
     );
     """
-    reservation_by_meal = """
-        CREATE TABLE IF NOT EXISTS reservation_by_meal (
+    reservations = """
+        CREATE TABLE IF NOT EXISTS reservations (
             meal_id uuid PRIMARY KEY,
             client_name text,
+            provider text,
+            pickup_time int,
             reservation_timestamp timestamp,
         );
     """
 
-    all = [meal_by_id, reservation_by_meal]
+    all = [meal_by_id, reservations]
