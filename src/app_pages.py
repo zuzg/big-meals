@@ -9,9 +9,18 @@ from src.stress_tests import stress_test1, stress_test2, stress_test3
 
 def reservation(qr: QueryReservation) -> None:
     st.subheader("Reserve a meal")
-    meal_id = st.text_input("Meal identifier")
+    meal_id = st.text_input("Meal identifier", key="res")
     try:
         qr.insert(uuid.UUID(meal_id), "Agatka")
+    except:
+        st.write("Enter a valid id")
+
+
+def cancellation(qr: QueryReservation) -> None:
+    st.subheader("Cancel reservation")
+    meal_id = st.text_input("Meal identifier")
+    try:
+        qr.cancel(uuid.UUID(meal_id))
     except:
         st.write("Enter a valid id")
 
@@ -83,23 +92,24 @@ def global_page() -> None:
 
 
 def user_page() -> None:
+    session = st.session_state["session"]
+    qr = QueryReservation(session)
     st.title("Foodsy")
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("List of meals")
-        session = st.session_state["session"]
         meals = session.execute("SELECT * FROM meal_by_id;")
         meals_df = pd.DataFrame(
             meals,
             columns=["meal_id", "is_available", "meal_type", "pickup_time", "provider"],
         )
         st.dataframe(meals_df)
-        qr = QueryReservation(session)
         reservation(qr)
 
     with col2:
         st.subheader("Your reservations")
         get_reservations(user_view=True, client_name="Agatka")
+        cancellation(qr)
 
 
 def stress_page() -> None:

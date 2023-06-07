@@ -28,8 +28,11 @@ class QueryReservation:
             "INSERT INTO reservations (meal_id, client_name, reservation_timestamp) "
             "VALUES (?, ?, ?) IF NOT EXISTS"
         )
+        self.prepared_delete = session.prepare(
+            "DELETE FROM reservations WHERE meal_id = ?"
+        )
         self.meal_update = self.session.prepare(
-                "UPDATE meal_by_id SET is_available = false WHERE meal_id = ?"
+            "UPDATE meal_by_id SET is_available = ? WHERE meal_id = ?"
             )
 
     def insert(
@@ -39,7 +42,13 @@ class QueryReservation:
     ) -> None:
         bound = self.prepared_insert.bind((meal_id, client_name, datetime.datetime.now()))
         self.session.execute(bound)
-        query = self.meal_update.bind((meal_id,))
+        query = self.meal_update.bind((False, meal_id))
+        self.session.execute(query)
+
+    def cancel(self, meal_id: uuid.UUID) -> None:
+        bound = self.prepared_delete.bind((meal_id,))
+        self.session.execute(bound)
+        query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)
 
     def drop(self) -> None:
