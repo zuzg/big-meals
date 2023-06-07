@@ -45,3 +45,9 @@ class QueryReservation:
     def drop(self) -> None:
         query = f"DROP TABLE reservation_by_meal"
         self.session.execute(query)
+
+
+def truncate_all(session: Session) -> None:
+    tables = ["meal_by_id", "reservation_by_meal"]
+    for table in tables:
+        session.execute(f"TRUNCATE {table}")

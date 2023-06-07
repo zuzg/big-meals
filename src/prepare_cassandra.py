@@ -45,6 +45,4 @@ def prepare_cassandra() -> Session:
     session = cluster.connect()
     create_keyspace(session)
     create_tables(session)
-    query = QueryMeal(session)
-    fill_meals(query)
     return session

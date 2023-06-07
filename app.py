@@ -15,6 +15,7 @@ def main() -> None:
         st.set_page_config(
             page_title="BIG meals",
             page_icon="🥗",
+            layout="wide",
         )
         if "session" not in st.session_state:
             st.session_state["session"] = session
@@ -23,7 +24,7 @@ def main() -> None:
             "Global": global_page,
             "User": user_page,
         }
-        name = st.sidebar.radio('Choose page', pages.keys(), index=0)
+        name = st.sidebar.radio('Choose a page', pages.keys(), index=0)
         pages[name]()
 
 
