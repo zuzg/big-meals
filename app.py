@@ -1,32 +1,31 @@
-import pandas as pd
 import streamlit as st
-import uuid
 
 from src.prepare_cassandra import prepare_cassandra
-from src.query import QueryReservation
+from src.app_pages import global_page, user_page
 
 
-def reservation(qr: QueryReservation) -> None:
-    st.subheader("Reserve a meal")
-    meal_id = st.text_input("Meal identifier")
+def main() -> None:
+    session = None
     try:
-        qr.insert(uuid.UUID(meal_id), "Agatka")
+        session = prepare_cassandra()
     except:
-        st.write("Enter a valid id")
+        st.error("Couldn't connect to the database.")
+
+    if session:
+        st.set_page_config(
+            page_title="BIG meals",
+            page_icon="🥗",
+        )
+        if "session" not in st.session_state:
+            st.session_state["session"] = session
+        st.sidebar.title(f"🥗 BIG meals")
+        pages = {
+            "Global": global_page,
+            "User": user_page,
+        }
+        name = st.sidebar.radio('Choose page', pages.keys(), index=0)
+        pages[name]()
 
 
-st.title("Foodssy")
-st.subheader("Available meals")
-session = prepare_cassandra()
-
-meals = session.execute("SELECT * FROM meal_by_id;")
-meals_df = pd.DataFrame(meals, columns=["meal_id", "is_available", "meal_type", "pickup_time", "provider"])
-st.dataframe(meals_df)
-
-qr = QueryReservation(session)
-reservation(qr)
-
-st.subheader("Reserved meals")
-reservations = session.execute("SELECT * FROM reservation_by_meal;")
-reservation_df = pd.DataFrame(reservations, columns=["meal_id", "client_name", "timestamp"])
-st.dataframe(reservation_df)
+if __name__ == "__main__":
+    main()
