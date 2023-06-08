@@ -2,6 +2,7 @@ import streamlit as st
 
 from src.prepare_cassandra import prepare_cassandra
 from src.app_pages import global_page, user_page, stress_page
+from src.MockData import create_mock_data
 
 
 def main() -> None:
@@ -13,20 +14,29 @@ def main() -> None:
 
     if session:
         st.set_page_config(
-            page_title="BIG meals",
+            page_title="Foodsy",
             page_icon="🥗",
             layout="wide",
         )
         if "session" not in st.session_state:
             st.session_state["session"] = session
-        st.sidebar.title(f"🥗 BIG meals")
+        st.sidebar.title(f"🥗 Foodsy")
         pages = {
-            "Global": global_page,
-            "User": user_page,
+            "Admin": global_page,
+            "User Zuza": user_page,
+            "User Agata": user_page,
             "Stress tests": stress_page,
         }
-        name = st.sidebar.radio('Choose a page', pages.keys(), index=0)
-        pages[name]()
+        user_names = {
+            "User Zuza": "Zuza",
+            "User Agata": "Agata"
+        }
+
+        name = st.sidebar.radio("CHOOSE A PAGE", pages.keys(), index=0)
+        if name.startswith("User"):
+            pages[name](user_names[name])
+        else:
+            pages[name]()
 
 
 if __name__ == "__main__":

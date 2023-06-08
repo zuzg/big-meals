@@ -4,21 +4,22 @@ from cassandra import ConsistencyLevel
 
 from .Tables import Tables
 from .query import QueryMeal
-from .MockData import MockData
+from .MockData import create_mock_data
 
 
 IP_ADDRESS = "127.0.0.1"
 PORT = "9042"
 KEYSPACE = "bigmeals"
-CONSISTENCY = ConsistencyLevel.QUORUM
-REPLICATION_FACTOR = 3
+CONSISTENCY = ConsistencyLevel.ONE  # QUORUM
+REPLICATION_FACTOR = 2
 
 
 def create_keyspace(session: Session) -> None:
     statement = (
         f"CREATE KEYSPACE IF NOT EXISTS {KEYSPACE} "
         + "WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': "
-        + f"'{REPLICATION_FACTOR}'" + "}"
+        + f"'{REPLICATION_FACTOR}'"
+        + "}"
     )
     session.execute(statement)
     session.set_keyspace(KEYSPACE)
@@ -30,9 +31,10 @@ def create_tables(session: Session) -> None:
 
 
 def fill_meals(query: QueryMeal, n: int = 5) -> None:
-    for _ in range(n):
-        mock = MockData()
-        query.insert(mock.food_type, mock.provider, mock.pickup_time)
+    records = create_mock_data(n)
+    for rec in records:
+        print(rec.food_type, rec.provider, rec.pickup_time)
+        query.insert(rec.food_type, rec.provider, rec.pickup_time)
 
 
 def prepare_cassandra() -> Session:
