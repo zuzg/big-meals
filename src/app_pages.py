@@ -4,10 +4,11 @@ import streamlit as st
 
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
+from src.perform_reserve_cancel import perform_reservation, perform_cancellation
 from src.stress_tests import stress_test1, stress_test2, stress_test3
 
 
-def reservation(qr: QueryReservation, client_name) -> None:
+def reservation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Reserve a meal")
     # st.markdown("Enter MEAL ID:")
     col1, col2 = st.columns([2, 1])
@@ -17,27 +18,10 @@ def reservation(qr: QueryReservation, client_name) -> None:
         reserve_button = st.button("Reserve")
 
     if reserve_button:
-        try:
-            session = st.session_state["session"]
-            prepared = session.prepare(
-                """
-                SELECT meal_id, provider, pickup_time
-                FROM meal_by_id
-                WHERE meal_id = ?
-                ALLOW FILTERING
-                """
-            )
-            bound = prepared.bind((uuid.UUID(meal_id),))
-            meal_info = session.execute(bound)[0]
-
-            row = qr.insert(uuid.UUID(meal_id), client_name, meal_info.provider, meal_info.pickup_time)[0]
-            if not row.applied:
-                st.markdown(":red[**THE MEAL HAS BEEN ALREADY RESERVED!**]")
-        except:
-            st.markdown(":red[**INVALID MEAL ID!**]")
+        perform_reservation(qr, meal_id, client_name)
 
 
-def cancellation(qr: QueryReservation) -> None:
+def cancellation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Cancel reservation")
     # st.markdown("Enter MEAL ID:")
     col1, col2 = st.columns([2, 1])
@@ -46,10 +30,7 @@ def cancellation(qr: QueryReservation) -> None:
     with col2:
         cancel_button = st.button("Confirm")
     if cancel_button:
-        try:
-            qr.cancel(uuid.UUID(meal_id))
-        except:
-            st.markdown(":red[**INVALID MEAL ID!**]")
+        perform_cancellation(qr, meal_id, client_name)
 
 
 def get_reservations(user_view: bool, client_name: str = "") -> None:
@@ -66,7 +47,7 @@ def get_reservations(user_view: bool, client_name: str = "") -> None:
         )
         bound = prepared.bind((client_name,))
         reservations = session.execute(bound)
-        columns = ["MEAL ID", "PROVIDER", "PICKUP AT", "RESERVED AT"]
+        columns = ["MEAL ID", "PROVIDER", "PICKUP TIME", "RESERVED AT"]
     else:
         reservations = session.execute(
             """
@@ -77,7 +58,7 @@ def get_reservations(user_view: bool, client_name: str = "") -> None:
         columns = ["meal_id", "client_name", "timestamp"]
 
     reservation_df = pd.DataFrame(reservations, columns=columns)
-    st.dataframe(reservation_df, hide_index=True)
+    st.dataframe(reservation_df, hide_index=True, use_container_width=True)
 
 
 def global_page() -> None:
@@ -90,7 +71,7 @@ def global_page() -> None:
         meals = session.execute("SELECT * FROM meal_by_id;")
         meals_df = pd.DataFrame(
             meals,
-            columns=["meal_id", "is_available", "meal_type", "pickup_time", "provider"],
+            columns=["MEAL ID", "AVAILABLE", "TYPE", "PICKUP TIME", "PROVIDER"],
         )
         st.dataframe(meals_df)
         st.subheader("Reserved meals")
@@ -107,14 +88,10 @@ def global_page() -> None:
                     query = QueryMeal(session)
                     fill_meals(query, n)
                     st.info(f"{n} new meals(s) has(ve) been added to the database.")
-                except:
-                    st.error(f"Cannot fill the database with {n} new meals.")
+                except Exception as e:
+                    st.error(f"Cannot fill the database with {n} new meals. {e}")
         if st.button("Truncate all tables"):
-            try:
-                truncate_all(session)
-                st.info("All tables trunkated.")
-            except:
-                st.error(f"Cannot truncate tables.")
+            truncate_all(session)
 
 
 def user_page(client_name:str) -> None:
@@ -128,7 +105,7 @@ def user_page(client_name:str) -> None:
         meals = session.execute("SELECT * FROM meal_by_id;")
         meals_df = pd.DataFrame(
             meals,
-            columns=["MEAL ID", "AVAILABLE", "TYPE", "PICKUP AT", "PROVIDER"],
+            columns=["MEAL ID", "AVAILABLE", "TYPE", "PICKUP TIME", "PROVIDER"],
         )
         st.dataframe(meals_df, hide_index=True)
         
@@ -137,11 +114,12 @@ def user_page(client_name:str) -> None:
         st.subheader("Your reservations")
         get_reservations(user_view=True, client_name=client_name)
         reservation(qr, client_name)
-        cancellation(qr)
+        cancellation(qr, client_name)
 
 
 def stress_page() -> None:
     st.title("Stress tests")
+    st.markdown("*Note: Each test truncates present data at the beginning as it creates new data.*")
     stress_test1()
     stress_test2()
     stress_test3()

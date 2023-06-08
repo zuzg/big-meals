@@ -2,8 +2,6 @@ import streamlit as st
 
 from src.prepare_cassandra import prepare_cassandra
 from src.app_pages import global_page, user_page, stress_page
-from src.MockData import create_mock_data
-
 
 def main() -> None:
     session = None
@@ -32,7 +30,7 @@ def main() -> None:
             "User Agata": "Agata"
         }
 
-        name = st.sidebar.radio("CHOOSE A PAGE", pages.keys(), index=0)
+        name = st.sidebar.radio("CHOOSE A PAGE", pages.keys())
         if name.startswith("User"):
             pages[name](user_names[name])
         else:

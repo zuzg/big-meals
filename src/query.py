@@ -1,4 +1,5 @@
 from cassandra.cluster import Session
+import streamlit as st
 import uuid
 import datetime
 
@@ -31,7 +32,13 @@ class QueryReservation:
             "VALUES (?, ?, ?, ?, ?) IF NOT EXISTS"
         )
         self.prepared_delete = session.prepare(
-            "DELETE FROM reservations WHERE meal_id = ?"
+            """
+            DELETE
+            FROM reservations 
+            WHERE meal_id = ?
+            """
+            # WHERE meal_id = ? AND client_name = ?
+        
         )
         self.meal_update = self.session.prepare(
             "UPDATE meal_by_id SET is_available = ? WHERE meal_id = ?"
@@ -43,17 +50,19 @@ class QueryReservation:
         client_name: str,
         provider: str,
         pickup_time: int
-    ) -> None:
+    ) -> list[dict]:
         bound = self.prepared_insert.bind(
             (meal_id, client_name, provider, pickup_time, datetime.datetime.now())
         )
         res = self.session.execute(bound)
-        query = self.meal_update.bind((False, meal_id))
-        self.session.execute(query)
+        if res[0].applied:
+            query = self.meal_update.bind((False, meal_id))
+            self.session.execute(query)
         return res
 
-    def cancel(self, meal_id: uuid.UUID) -> None:
-        bound = self.prepared_delete.bind((meal_id,))
+    def cancel(self, meal_id: uuid.UUID, client_name: str) -> None:
+        # bound = self.prepared_delete.bind((meal_id, client_name))
+        bound = self.prepared_delete.bind((meal_id, ))
         self.session.execute(bound)
         query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)
@@ -64,6 +73,10 @@ class QueryReservation:
 
 
 def truncate_all(session: Session) -> None:
-    tables = ["meal_by_id", "reservations"]
-    for table in tables:
-        session.execute(f"TRUNCATE {table}")
+    try:
+        tables = ["meal_by_id", "reservations"]
+        for table in tables:
+            session.execute(f"TRUNCATE {table}")
+        st.info("All tables truncated.")
+    except:
+        st.error(f"Cannot truncate tables.")

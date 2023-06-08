@@ -33,7 +33,6 @@ def create_tables(session: Session) -> None:
 def fill_meals(query: QueryMeal, n: int = 5) -> None:
     records = create_mock_data(n)
     for rec in records:
-        print(rec.food_type, rec.provider, rec.pickup_time)
         query.insert(rec.food_type, rec.provider, rec.pickup_time)
 
 
