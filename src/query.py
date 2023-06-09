@@ -35,7 +35,7 @@ class QueryReservation:
             """
             DELETE
             FROM reservations 
-            WHERE meal_id = ?
+            WHERE meal_id = ? 
             """
             # WHERE meal_id = ? AND client_name = ?
         

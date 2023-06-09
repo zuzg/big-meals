@@ -6,6 +6,7 @@ import threading
 from src.query import QueryReservation
 
 RESERVATION_LOCK = threading.Lock()
+CANCELLATION_LOCK = threading.Lock()
 
 def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mode:bool=False) -> None:
     global RESERVATION_LOCK
@@ -28,16 +29,19 @@ def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mo
         if not row.applied:
             if test_mode:
                 return 1
-            st.markdown(":red[**THE MEAL HAS BEEN ALREADY RESERVED!**]")
-        if test_mode:
-            return 0
+            st.error("The meal has been already reserved!")
+        else:
+            if test_mode:
+                return 0
+            st.success("The meal has been booked successfully!", icon="✅")
     except:
-        st.markdown(":red[**INVALID MEAL ID!**]")
+        st.error("Invalid MEAL ID!")
 
 
 def perform_cancellation(qr: QueryReservation, meal_id: str, client_name: str, test_mode:bool=False) -> None:
+    global CANCELLATION_LOCK 
     # TODO: verify the user who cancells a reservation
     try:
         qr.cancel(uuid.UUID(meal_id), client_name)
     except:
-        st.markdown(":red[**INVALID MEAL ID!**]")
+        st.error("Invalid MEAL ID!")

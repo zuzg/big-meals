@@ -17,10 +17,8 @@ class Tables:
             reservation_timestamp timestamp,
         );
     """
-    # client_index = """
-    #     CREATE INDEX IF NOT EXISTS ON reservations (client_name);
-    
-    # """
-
+    client_index = """
+        CREATE INDEX IF NOT EXISTS client_name_index ON reservations (client_name);
+    """
 
     all = [meal_by_id, reservations]#, client_index]

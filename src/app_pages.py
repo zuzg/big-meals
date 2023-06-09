@@ -10,7 +10,6 @@ from src.stress_tests import stress_test1, stress_test2, stress_test3
 
 def reservation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Reserve a meal")
-    # st.markdown("Enter MEAL ID:")
     col1, col2 = st.columns([2, 1])
     with col1: 
         meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="res", label_visibility="collapsed")
@@ -23,7 +22,6 @@ def reservation(qr: QueryReservation, client_name: str) -> None:
 
 def cancellation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Cancel reservation")
-    # st.markdown("Enter MEAL ID:")
     col1, col2 = st.columns([2, 1])
     with col1: 
         meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="cancel", label_visibility="collapsed")
