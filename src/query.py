@@ -8,7 +8,7 @@ class QueryMeal:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.prepared_insert = session.prepare(
-            "INSERT INTO meal_by_id (meal_id, meal_type, provider, pickup_time, is_available) "
+            "INSERT INTO meal_by_id (meal_id, meal_type, provider, pickup_time, available) "
             "VALUES (?, ?, ?, ?, ?) IF NOT EXISTS"
         )
 
@@ -39,7 +39,7 @@ class QueryReservation:
             """
         )
         self.meal_update = self.session.prepare(
-            "UPDATE meal_by_id SET is_available = ? WHERE meal_id = ?"
+            "UPDATE meal_by_id SET available = ? WHERE meal_id = ?"
         )
 
     def insert(
@@ -58,13 +58,13 @@ class QueryReservation:
             self.session.execute(query)
         return res
 
-    def cancel(self, meal_id: uuid.UUID, client_name: str) -> None:
+    def cancel(self, meal_id: uuid.UUID, client_name: str, test_mode: bool =  False):
         bound = self.prepared_delete.bind((meal_id, client_name))
-        # bound = self.prepared_delete.bind((meal_id, ))
         self.session.execute(bound)
+        
         query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)
-
+            
     def drop(self) -> None:
         query = f"DROP TABLE reservations"
         self.session.execute(query)

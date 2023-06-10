@@ -5,7 +5,7 @@ import streamlit as st
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
 from src.perform_reserve_cancel import perform_reservation, perform_cancellation
-from src.stress_tests import stress_test1, stress_test2, stress_test3
+from src.stress_tests import stress_test1, stress_test2, stress_test3, stress_test4
 
 
 def reservation(qr: QueryReservation, client_name: str) -> None:
@@ -56,7 +56,7 @@ def get_reservations(user_view: bool, client_name: str = "") -> None:
         columns = ["meal_id", "client_name", "timestamp"]
 
     reservation_df = pd.DataFrame(reservations, columns=columns)
-    st.dataframe(reservation_df, hide_index=True, use_container_width=True)
+    st.dataframe(reservation_df, use_container_width=True)
 
 
 def global_page() -> None:
@@ -105,7 +105,7 @@ def user_page(client_name:str) -> None:
             meals,
             columns=["MEAL ID", "AVAILABLE", "TYPE", "PICKUP TIME", "PROVIDER"],
         )
-        st.dataframe(meals_df, hide_index=True)
+        st.dataframe(meals_df)
         
 
     with col2:
@@ -121,3 +121,4 @@ def stress_page() -> None:
     stress_test1()
     stress_test2()
     stress_test3()
+    stress_test4()

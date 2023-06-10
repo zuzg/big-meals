@@ -4,17 +4,12 @@ from src.query import truncate_all
 
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
-from src.perform_reserve_cancel import perform_reservation
+from src.perform_reserve_cancel import perform_reservation, perform_cancellation
 
 
-
-def perform_test1(session, number_clients: int = 2, number_actions: int = 100):
-
-    n_rows = 50
+def prepare_test_meals(session, n: int) -> None:
     query_meal = QueryMeal(session)
-    fill_meals(query_meal, n_rows)
-
-    query_reservation = QueryReservation(session)
+    fill_meals(query_meal, n)
 
     meals = session.execute(
         """
@@ -23,34 +18,79 @@ def perform_test1(session, number_clients: int = 2, number_actions: int = 100):
         """
     )
     meal_ids = [str(row.meal_id) for row in meals]
+    return meal_ids
 
+
+def perform_test1(session, number_actions: int = 10, repeat: int = 3) -> None:
+    
+    query_reservation = QueryReservation(session)
+    meal_ids = prepare_test_meals(session, 5)
+
+    for n in range(number_actions):
+        meal = random.choice(meal_ids)
+        if random.random() <= 0.7:
+            func = perform_reservation
+        else:
+            func = perform_cancellation
+        for r in range(repeat):
+            func(query_reservation, meal, f"test_1_client")
+
+    st.info(f"Test 1 performed successfully.")
+
+
+def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
+
+    query_reservation = QueryReservation(session)
+    meal_ids = prepare_test_meals(session, 50)
 
     collisions = 0
-    # TODO: cancellation verification
     wrong_cancel = 0
     for _ in range(number_actions):
         for i in range(number_clients):
             if random.random() <= 0.5:
-                collisions += perform_reservation(query_reservation, random.choice(meal_ids), f"client_{i+1}", test_mode=True)
+                collisions += perform_reservation(query_reservation, random.choice(meal_ids), f"test_2_client_{i+1}", test_mode=True)
             else:
-                wrong_cancel += 0
-    st.info(f"Test 1 performed successfully.  \nRecorded {collisions} attempts for already existing reservation and {wrong_cancel} invalid cancellations.")
+                wrong_cancel += perform_cancellation(query_reservation, random.choice(meal_ids), f"test_2_client_{i+1}", test_mode=True)
+    st.info(f"Test 2 performed successfully.  \nRecorded {collisions} reservation attempt(s) for already existing reservation and {wrong_cancel} attampt(s) for invalid cancellation(s).")
+
+
+def perform_test3() -> None:
+    ...
+
+
+def perform_test4() -> None:
+    ...
+
+
 
 def stress_test1() -> None:
-    st.subheader("1. Two or more clients make the possible requests randomly.")
-    execution_button = st.button("Execute")
+    st.subheader("1. The client makes the same request very quickly.")
+    execution_button = st.button("Execute Test 1")
     if execution_button:
 
         session = st.session_state["session"]
         truncate_all(session)
-
         perform_test1(session)
 
 
 def stress_test2() -> None:
-    st.subheader("2. Immediate occupancy of all seats/reservations on 2 clients.")
-    st.write("TODO")
+    st.subheader("2. Two or more clients make the possible requests randomly.")
+    execution_button = st.button("Execute Test 2")
+    if execution_button:
+
+        session = st.session_state["session"]
+        truncate_all(session)
+        perform_test2(session)
+
 
 def stress_test3() -> None:
+    st.subheader("2. Immediate occupancy of all seats/reservations on 2 clients.")
+    execution_button = st.button("Execute Test 3")
+    if execution_button:
+        session = st.session_state["session"]
+        truncate_all(session)
+        perform_test2(session)
+
+def stress_test4() -> None:
     st.subheader("3. Constant cancellations and seat occupancy.")
     st.write("TODO")

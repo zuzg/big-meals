@@ -5,7 +5,7 @@ class Tables:
         meal_type text,
         provider text,
         pickup_time int,
-        is_available boolean,
+        available boolean,
     );
     """
     reservations = """
