@@ -110,7 +110,11 @@ def user_page(client_name:str) -> None:
     st.title(f"Hi {client_name},")
     st.markdown("### *save some food with Foodsy!*")
     col1, col2 = st.columns(2)
+
     with col1:
+        st.subheader("Your reservations")
+        get_reservations(user_view=True, client_name=client_name)
+
         st.subheader("List of meals")
         meals = session.execute("SELECT * FROM meal_by_id;")
         meals_df = pd.DataFrame(
@@ -119,10 +123,7 @@ def user_page(client_name:str) -> None:
         )
         st.dataframe(meals_df)
         
-
     with col2:
-        st.subheader("Your reservations")
-        get_reservations(user_view=True, client_name=client_name)
         reservation(qr, client_name)
         add_note(qr, client_name)
         cancellation(qr, client_name)
