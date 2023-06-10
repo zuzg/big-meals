@@ -1,5 +1,5 @@
 import streamlit as st
-import random 
+import random
 from src.query import truncate_all
 
 from src.query import QueryReservation, QueryMeal, truncate_all
@@ -52,21 +52,38 @@ def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
     for _ in range(number_actions):
         for i in range(number_clients):
             if random.random() <= 0.5:
-                collisions += perform_reservation(query_reservation, random.choice(meal_ids), f"test_2_client_{i+1}", test_mode=True)
+                collisions += perform_reservation(
+                    query_reservation,
+                    random.choice(meal_ids),
+                    f"test_2_client_{i+1}",
+                    test_mode=True,
+                )
             else:
-                wrong_cancel += perform_cancellation(query_reservation, random.choice(meal_ids), f"test_2_client_{i+1}", test_mode=True)
-    st.info(f"Test 2 performed successfully.  \nRecorded {collisions} reservation attempt(s) for already existing reservation and {wrong_cancel} attampt(s) for invalid cancellation(s).")
+                wrong_cancel += perform_cancellation(
+                    query_reservation,
+                    random.choice(meal_ids),
+                    f"test_2_client_{i+1}",
+                    test_mode=True,
+                )
+    st.info(
+        f"Test 2 performed successfully.  \nRecorded {collisions} reservation attempt(s) for already existing reservation and {wrong_cancel} attampt(s) for invalid cancellation(s)."
+    )
 
 
 def perform_test3(session) -> None:
     """
-     Immediate occupancy of all seats/reservations on 2 clients.
+    Immediate occupancy of all seats/reservations on 2 clients.
     """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 100)
 
     for meal in meal_ids:
-        perform_reservation(query_reservation, meal, f"test_3_client_{random.choice([1, 2])}", test_mode=True)
+        perform_reservation(
+            query_reservation,
+            meal,
+            f"test_3_client_{random.choice([1, 2])}",
+            test_mode=True,
+        )
 
     st.info(f"Test 3 performed successfully.")
 
@@ -91,7 +108,6 @@ def stress_test1() -> None:
     st.subheader("1. The client makes the same request very quickly.")
     execution_button = st.button("Execute Test 1")
     if execution_button:
-
         session = st.session_state["session"]
         truncate_all(session)
         perform_test1(session)

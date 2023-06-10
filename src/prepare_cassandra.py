@@ -10,7 +10,7 @@ from .MockData import create_mock_data
 IP_ADDRESS = "127.0.0.1"
 PORT = "9042"
 KEYSPACE = "bigmeals"
-CONSISTENCY = ConsistencyLevel.ONE  # QUORUM
+CONSISTENCY = ConsistencyLevel.QUORUM
 REPLICATION_FACTOR = 2
 
 

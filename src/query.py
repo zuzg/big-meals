@@ -46,11 +46,7 @@ class QueryReservation:
         )
 
     def insert(
-        self,
-        meal_id: uuid.UUID,
-        client_name: str,
-        provider: str,
-        pickup_time: int
+        self, meal_id: uuid.UUID, client_name: str, provider: str, pickup_time: int
     ) -> list[dict]:
         bound = self.prepared_insert.bind(
             (meal_id, client_name, provider, pickup_time, datetime.datetime.now())
@@ -64,14 +60,14 @@ class QueryReservation:
     def cancel(self, meal_id: uuid.UUID, client_name: str):
         bound = self.prepared_delete.bind((meal_id, client_name))
         self.session.execute(bound)
-        
+
         query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)
-    
+
     def update_note(self, meal_id: uuid.UUID, client_name: str, text: str):
         bound = self.prepared_res_update.bind((text, meal_id, client_name))
         self.session.execute(bound)
-            
+
     def drop(self) -> None:
         query = f"DROP TABLE reservations"
         self.session.execute(query)

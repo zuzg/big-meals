@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 import random
 
+
 FILENAME = "./data/restaurants.txt"
 
 

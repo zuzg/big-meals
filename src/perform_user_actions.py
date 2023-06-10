@@ -1,15 +1,18 @@
 import uuid
-import pandas as pd
 import streamlit as st
 import threading
 
 from src.query import QueryReservation
 
+
 RESERVATION_LOCK = threading.Lock()
 ADD_NOTE_LOCK = threading.Lock()
 CANCELLATION_LOCK = threading.Lock()
 
-def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mode:bool=False) -> None:
+
+def perform_reservation(
+    qr: QueryReservation, meal_id: str, client_name, test_mode: bool = False
+) -> None:
     global RESERVATION_LOCK
     try:
         session = st.session_state["session"]
@@ -31,7 +34,12 @@ def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mo
                 st.error("The meal has been already reserved!")
                 return None
             meal_info = meal_info.one()
-            qr.insert(uuid.UUID(meal_id), client_name, meal_info.provider, meal_info.pickup_time)
+            qr.insert(
+                uuid.UUID(meal_id),
+                client_name,
+                meal_info.provider,
+                meal_info.pickup_time,
+            )
 
             if test_mode:
                 return 0
@@ -40,18 +48,19 @@ def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mo
         st.error(f"{e}")
 
 
-
-def add_note_to_reservation(qr: QueryReservation, meal_id: str, client_name: str, text: str):
+def add_note_to_reservation(
+    qr: QueryReservation, meal_id: str, client_name: str, text: str
+):
     global ADD_NOTE_LOCK
     try:
         session = st.session_state["session"]
         prepared = session.prepare(
-                """
+            """
                 SELECT meal_id, client_name
                 FROM reservations
                 WHERE meal_id = ? and client_name = ?
                 """
-            )
+        )
         bound = prepared.bind((uuid.UUID(meal_id), client_name))
 
         with ADD_NOTE_LOCK:
@@ -61,24 +70,25 @@ def add_note_to_reservation(qr: QueryReservation, meal_id: str, client_name: str
                 return None
 
             qr.update_note(uuid.UUID(meal_id), client_name, text)
-            st.success("The reservation been updated successfully!", icon="✅")
+            st.success("The reservation has been updated successfully!", icon="✅")
 
     except:
         st.error(f"Invalid MEAL ID!")
 
 
-
-def perform_cancellation(qr: QueryReservation, meal_id: str, client_name: str, test_mode:bool=False) -> None:
-    global CANCELLATION_LOCK 
+def perform_cancellation(
+    qr: QueryReservation, meal_id: str, client_name: str, test_mode: bool = False
+) -> None:
+    global CANCELLATION_LOCK
     try:
         session = st.session_state["session"]
         prepared = session.prepare(
-                """
+            """
                 SELECT meal_id, client_name
                 FROM reservations
                 WHERE meal_id = ? and client_name = ?
                 """
-            )
+        )
         bound = prepared.bind((uuid.UUID(meal_id), client_name))
 
         with CANCELLATION_LOCK:
