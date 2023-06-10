@@ -54,13 +54,28 @@ def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
     st.info(f"Test 2 performed successfully.  \nRecorded {collisions} reservation attempt(s) for already existing reservation and {wrong_cancel} attampt(s) for invalid cancellation(s).")
 
 
-def perform_test3() -> None:
-    ...
+def perform_test3(session) -> None:
 
+    query_reservation = QueryReservation(session)
+    meal_ids = prepare_test_meals(session, 100)
 
-def perform_test4() -> None:
-    ...
+    for meal in meal_ids:
+        perform_reservation(query_reservation, meal, f"test_3_client_{random.choice([1, 2])}", test_mode=True)
 
+    st.info(f"Test 3 performed successfully.")
+
+def perform_test4(session, N: int = 31) -> None:
+
+    query_reservation = QueryReservation(session)
+    meal_id = prepare_test_meals(session, 1)[0]
+
+    for n in range(N):
+        if n % 2 == 0:
+            perform_reservation(query_reservation, meal_id, f"test_4_client")
+        else:
+            perform_cancellation(query_reservation, meal_id, f"test_4_client")
+
+    st.info(f"Test 4 performed successfully.")
 
 
 def stress_test1() -> None:
@@ -77,7 +92,6 @@ def stress_test2() -> None:
     st.subheader("2. Two or more clients make the possible requests randomly.")
     execution_button = st.button("Execute Test 2")
     if execution_button:
-
         session = st.session_state["session"]
         truncate_all(session)
         perform_test2(session)
@@ -89,8 +103,13 @@ def stress_test3() -> None:
     if execution_button:
         session = st.session_state["session"]
         truncate_all(session)
-        perform_test2(session)
+        perform_test3(session)
+
 
 def stress_test4() -> None:
     st.subheader("3. Constant cancellations and seat occupancy.")
-    st.write("TODO")
+    execution_button = st.button("Execute Test 4")
+    if execution_button:
+        session = st.session_state["session"]
+        truncate_all(session)
+        perform_test4(session)
