@@ -35,10 +35,8 @@ class QueryReservation:
             """
             DELETE
             FROM reservations 
-            WHERE meal_id = ? 
+            WHERE meal_id = ? AND client_name = ?
             """
-            # WHERE meal_id = ? AND client_name = ?
-        
         )
         self.meal_update = self.session.prepare(
             "UPDATE meal_by_id SET is_available = ? WHERE meal_id = ?"
@@ -61,8 +59,8 @@ class QueryReservation:
         return res
 
     def cancel(self, meal_id: uuid.UUID, client_name: str) -> None:
-        # bound = self.prepared_delete.bind((meal_id, client_name))
-        bound = self.prepared_delete.bind((meal_id, ))
+        bound = self.prepared_delete.bind((meal_id, client_name))
+        # bound = self.prepared_delete.bind((meal_id, ))
         self.session.execute(bound)
         query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)

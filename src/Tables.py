@@ -10,15 +10,12 @@ class Tables:
     """
     reservations = """
         CREATE TABLE IF NOT EXISTS reservations (
-            meal_id uuid PRIMARY KEY,
+            meal_id uuid,
             client_name text,
             provider text,
             pickup_time int,
             reservation_timestamp timestamp,
+            PRIMARY KEY ((meal_id), client_name)
         );
     """
-    client_index = """
-        CREATE INDEX IF NOT EXISTS client_name_index ON reservations (client_name);
-    """
-
-    all = [meal_by_id, reservations]#, client_index]
+    all = [meal_by_id, reservations]
