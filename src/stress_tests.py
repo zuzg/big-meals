@@ -4,7 +4,7 @@ from src.query import truncate_all
 
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
-from src.perform_reserve_cancel import perform_reservation, perform_cancellation
+from src.perform_user_actions import perform_reservation, perform_cancellation
 
 
 def prepare_test_meals(session, n: int) -> None:
@@ -107,7 +107,7 @@ def stress_test2() -> None:
 
 
 def stress_test3() -> None:
-    st.subheader("2. Immediate occupancy of all seats/reservations on 2 clients.")
+    st.subheader("3. Immediate occupancy of all seats/reservations on 2 clients.")
     execution_button = st.button("Execute Test 3")
     if execution_button:
         session = st.session_state["session"]
@@ -116,7 +116,7 @@ def stress_test3() -> None:
 
 
 def stress_test4() -> None:
-    st.subheader("3. Constant cancellations and seat occupancy.")
+    st.subheader("4. Constant cancellations and seat occupancy.")
     execution_button = st.button("Execute Test 4")
     if execution_button:
         session = st.session_state["session"]

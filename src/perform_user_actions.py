@@ -6,6 +6,7 @@ import threading
 from src.query import QueryReservation
 
 RESERVATION_LOCK = threading.Lock()
+ADD_NOTE_LOCK = threading.Lock()
 CANCELLATION_LOCK = threading.Lock()
 
 def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mode:bool=False) -> None:
@@ -37,6 +38,34 @@ def perform_reservation(qr: QueryReservation, meal_id: str, client_name, test_mo
             st.success("The meal has been booked successfully!", icon="✅")
     except Exception as e:
         st.error(f"{e}")
+
+
+
+def add_note_to_reservation(qr: QueryReservation, meal_id: str, client_name: str, text: str):
+    global ADD_NOTE_LOCK
+    try:
+        session = st.session_state["session"]
+        prepared = session.prepare(
+                """
+                SELECT meal_id, client_name
+                FROM reservations
+                WHERE meal_id = ? and client_name = ?
+                """
+            )
+        bound = prepared.bind((uuid.UUID(meal_id), client_name))
+
+        with ADD_NOTE_LOCK:
+            res_info = session.execute(bound)
+            if not res_info.one():
+                st.error("No such MEAL ID found in your reservations!")
+                return None
+
+            qr.update_note(uuid.UUID(meal_id), client_name, text)
+            st.success("The reservation been updated successfully!", icon="✅")
+
+    except:
+        st.error(f"Invalid MEAL ID!")
+
 
 
 def perform_cancellation(qr: QueryReservation, meal_id: str, client_name: str, test_mode:bool=False) -> None:

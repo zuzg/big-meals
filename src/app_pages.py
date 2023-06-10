@@ -4,7 +4,7 @@ import streamlit as st
 
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
-from src.perform_reserve_cancel import perform_reservation, perform_cancellation
+from src.perform_user_actions import perform_reservation, perform_cancellation, add_note_to_reservation
 from src.stress_tests import stress_test1, stress_test2, stress_test3, stress_test4
 
 
@@ -12,23 +12,34 @@ def reservation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Reserve a meal")
     col1, col2 = st.columns([2, 1])
     with col1: 
-        meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="res", label_visibility="collapsed")
+        meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="res",label_visibility="collapsed")
     with col2:
         reserve_button = st.button("Reserve")
 
     if reserve_button:
         perform_reservation(qr, meal_id, client_name)
 
+def add_note(qr: QueryReservation, client_name: str) -> None:
+    st.subheader("Add a note to your reservation")
+    col1, col2 = st.columns([2, 1])
+    with col1: 
+        meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="note", label_visibility="collapsed")
+        res_note = st.text_input("Enter a note:", "Add your note here", label_visibility="collapsed")
+    with col2:
+        add_note_button = st.button("Confirm", key="note_button")
+    if add_note_button:
+        add_note_to_reservation(qr, meal_id, client_name, res_note)
 
 def cancellation(qr: QueryReservation, client_name: str) -> None:
     st.subheader("Cancel reservation")
     col1, col2 = st.columns([2, 1])
     with col1: 
-        meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="cancel", label_visibility="collapsed")
+        meal_id = st.text_input("Enter MEAL ID:", "MEAL ID",  key="cancel", label_visibility="collapsed")
     with col2:
-        cancel_button = st.button("Confirm")
+        cancel_button = st.button("Confirm", key="cancel_button")
     if cancel_button:
         perform_cancellation(qr, meal_id, client_name)
+
 
 
 def get_reservations(user_view: bool, client_name: str = "") -> None:
@@ -36,7 +47,7 @@ def get_reservations(user_view: bool, client_name: str = "") -> None:
     if user_view:
         prepared = session.prepare(
             """
-            SELECT meal_id, provider, pickup_time, reservation_timestamp 
+            SELECT meal_id, provider, pickup_time, reservation_timestamp, note 
             FROM reservations
             WHERE client_name = ?
             ALLOW FILTERING
@@ -44,15 +55,15 @@ def get_reservations(user_view: bool, client_name: str = "") -> None:
         )
         bound = prepared.bind((client_name,))
         reservations = session.execute(bound)
-        columns = ["MEAL ID", "PROVIDER", "PICKUP TIME", "RESERVED AT"]
+        columns = ["MEAL ID", "PROVIDER", "PICKUP TIME", "RESERVED AT", "NOTE"]
     else:
         reservations = session.execute(
             """
-            SELECT meal_id, client_name, reservation_timestamp 
+            SELECT meal_id, client_name, reservation_timestamp, note 
             FROM reservations;
             """
         )
-        columns = ["meal_id", "client_name", "timestamp"]
+        columns = ["MEAL ID", "CLIENT NAME", "RESERVED AT", "NOTE"]
 
     reservation_df = pd.DataFrame(reservations, columns=columns)
     st.dataframe(reservation_df, use_container_width=True)
@@ -112,6 +123,7 @@ def user_page(client_name:str) -> None:
         get_reservations(user_view=True, client_name=client_name)
         reservation(qr, client_name)
         cancellation(qr, client_name)
+        add_note(qr, client_name)
 
 
 def stress_page() -> None:

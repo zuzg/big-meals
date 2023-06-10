@@ -41,6 +41,9 @@ class QueryReservation:
         self.meal_update = self.session.prepare(
             "UPDATE meal_by_id SET available = ? WHERE meal_id = ?"
         )
+        self.prepared_res_update = self.session.prepare(
+            "UPDATE reservations SET note = ? WHERE meal_id = ? AND client_name = ?"
+        )
 
     def insert(
         self,
@@ -58,12 +61,16 @@ class QueryReservation:
             self.session.execute(query)
         return res
 
-    def cancel(self, meal_id: uuid.UUID, client_name: str, test_mode: bool =  False):
+    def cancel(self, meal_id: uuid.UUID, client_name: str):
         bound = self.prepared_delete.bind((meal_id, client_name))
         self.session.execute(bound)
         
         query = self.meal_update.bind((True, meal_id))
         self.session.execute(query)
+    
+    def update_note(self, meal_id: uuid.UUID, client_name: str, text: str):
+        bound = self.prepared_res_update.bind((text, meal_id, client_name))
+        self.session.execute(bound)
             
     def drop(self) -> None:
         query = f"DROP TABLE reservations"

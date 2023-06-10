@@ -15,6 +15,7 @@ class Tables:
             provider text,
             pickup_time int,
             reservation_timestamp timestamp,
+            note text,
             PRIMARY KEY ((meal_id), client_name)
         );
     """
