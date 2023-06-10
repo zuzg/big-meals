@@ -22,7 +22,9 @@ def prepare_test_meals(session, n: int) -> None:
 
 
 def perform_test1(session, number_actions: int = 10, repeat: int = 3) -> None:
-    
+    """
+    The client makes the same request very quickly.
+    """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 5)
 
@@ -39,7 +41,9 @@ def perform_test1(session, number_actions: int = 10, repeat: int = 3) -> None:
 
 
 def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
-
+    """
+    Two or more clients make the possible requests randomly.
+    """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 50)
 
@@ -55,7 +59,9 @@ def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
 
 
 def perform_test3(session) -> None:
-
+    """
+     Immediate occupancy of all seats/reservations on 2 clients.
+    """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 100)
 
@@ -64,8 +70,11 @@ def perform_test3(session) -> None:
 
     st.info(f"Test 3 performed successfully.")
 
-def perform_test4(session, N: int = 31) -> None:
 
+def perform_test4(session, N: int = 31) -> None:
+    """
+    Constant cancellations and seat occupancy.
+    """
     query_reservation = QueryReservation(session)
     meal_id = prepare_test_meals(session, 1)[0]
 

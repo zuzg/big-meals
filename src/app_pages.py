@@ -34,7 +34,6 @@ def cancellation(qr: QueryReservation, client_name: str) -> None:
 def get_reservations(user_view: bool, client_name: str = "") -> None:
     session = st.session_state["session"]
     if user_view:
-        # TODO join with meals (or new table by_client?)
         prepared = session.prepare(
             """
             SELECT meal_id, provider, pickup_time, reservation_timestamp 
