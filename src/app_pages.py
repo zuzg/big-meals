@@ -20,14 +20,16 @@ def reservation(qr: QueryReservation, client_name: str) -> None:
         perform_reservation(qr, meal_id, client_name)
 
 def add_note(qr: QueryReservation, client_name: str) -> None:
+    default_note = "Add your note here"
+
     st.subheader("Add a note to your reservation")
     col1, col2 = st.columns([2, 1])
     with col1: 
         meal_id = st.text_input("Enter MEAL ID:", "MEAL ID", key="note", label_visibility="collapsed")
-        res_note = st.text_input("Enter a note:", "Add your note here", label_visibility="collapsed")
+        res_note = st.text_input("Enter a note:", default_note, label_visibility="collapsed")
     with col2:
         add_note_button = st.button("Confirm", key="note_button")
-    if add_note_button:
+    if add_note_button and not res_note == default_note:
         add_note_to_reservation(qr, meal_id, client_name, res_note)
 
 def cancellation(qr: QueryReservation, client_name: str) -> None:
@@ -122,8 +124,9 @@ def user_page(client_name:str) -> None:
         st.subheader("Your reservations")
         get_reservations(user_view=True, client_name=client_name)
         reservation(qr, client_name)
-        cancellation(qr, client_name)
         add_note(qr, client_name)
+        cancellation(qr, client_name)
+        
 
 
 def stress_page() -> None:
