@@ -82,21 +82,51 @@ def perform_test2(session, number_clients: int = 2, number_actions: int = 50):
     st.info(f"Test 2 performed successfully.")
 
 
+def divide_list(lst, n):
+    """
+    Divide a list into n parts.
+    """
+    size = len(lst) // n
+    remainder = len(lst) % n
 
-def perform_test3(session) -> None:
+    sublists = []
+    start = 0
+    for i in range(n):
+        sublist_size = size + (i < remainder)
+        end = start + sublist_size
+        sublists.append(lst[start:end])
+        start = end
+
+    return sublists
+
+
+def perform_test3_thread(client_name, query_reservation, meal_ids):
+    for meal in meal_ids:
+        perform_reservation(
+            query_reservation,
+            meal,
+            client_name,
+            test_mode=True,
+        )
+
+
+def perform_test3(session, number_clients: int = 2):
     """
     Immediate occupancy of all seats/reservations on 2 clients.
     """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 100)
+    sublists = divide_list(meal_ids, number_clients)
 
-    for meal in meal_ids:
-        perform_reservation(
-            query_reservation,
-            meal,
-            f"test_3_client_{random.choice([1, 2])}",
-            test_mode=True,
-        )
+    threads = []
+    for i in range(number_clients):
+        thread = threading.Thread(target=perform_test3_thread, args=(f"test_3_client_{i+1}", query_reservation, sublists[i]))
+        add_script_run_ctx(thread)
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
 
     st.info(f"Test 3 performed successfully.")
 
