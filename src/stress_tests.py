@@ -1,6 +1,9 @@
 import streamlit as st
 import random
+import threading
+
 from src.query import truncate_all
+from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 from src.query import QueryReservation, QueryMeal, truncate_all
 from src.prepare_cassandra import fill_meals
@@ -40,34 +43,44 @@ def perform_test1(session, number_actions: int = 10, repeat: int = 3) -> None:
     st.info(f"Test 1 performed successfully.")
 
 
-def perform_test2(session, number_clients: int = 2, number_actions: int = 100):
+def perform_test2_thread(client_name, query_reservation, meal_ids, number_actions: int):
+    for _ in range(number_actions):
+        for i in range(len(meal_ids)):
+            if random.random() <= 0.5:
+                perform_reservation(
+                    query_reservation,
+                    meal_ids[i],
+                    client_name,
+                    test_mode=True,
+                )
+            else:
+                perform_cancellation(
+                    query_reservation,
+                    meal_ids[i],
+                    client_name,
+                    test_mode=True,
+                )
+
+
+def perform_test2(session, number_clients: int = 2, number_actions: int = 50):
     """
     Two or more clients make the possible requests randomly.
     """
     query_reservation = QueryReservation(session)
     meal_ids = prepare_test_meals(session, 50)
 
-    collisions = 0
-    wrong_cancel = 0
-    for _ in range(number_actions):
-        for i in range(number_clients):
-            if random.random() <= 0.5:
-                collisions += perform_reservation(
-                    query_reservation,
-                    random.choice(meal_ids),
-                    f"test_2_client_{i+1}",
-                    test_mode=True,
-                )
-            else:
-                wrong_cancel += perform_cancellation(
-                    query_reservation,
-                    random.choice(meal_ids),
-                    f"test_2_client_{i+1}",
-                    test_mode=True,
-                )
-    st.info(
-        f"Test 2 performed successfully.  \nRecorded {collisions} reservation attempt(s) for already existing reservation and {wrong_cancel} attampt(s) for invalid cancellation(s)."
-    )
+    threads = []
+    for i in range(number_clients):
+        thread = threading.Thread(target=perform_test2_thread, args=(f"test_1_client_{i+1}", query_reservation, meal_ids, number_actions))
+        add_script_run_ctx(thread)
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    st.info(f"Test 2 performed successfully.")
+
 
 
 def perform_test3(session) -> None:
